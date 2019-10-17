@@ -1,0 +1,38 @@
+resource_types:
+- name: kpack
+  type: docker-image
+  source:
+    repository: joaopapereira/kpack-resource
+
+resources:
+- name: first_image
+  type: kpack
+  check_every: 5m
+  source:
+    k8s_token: ((k8s_token))
+    k8s_api: ((k8s_api))
+    k8s_ca_cert: ((k8s_ca_cert))
+    image: ((image_1))
+    username: ((dockerhub_username))
+    password: ((dockerhub_password))
+    namespace: awesome-project
+    service_account: default
+    log_level: debug
+- name: kpack
+  type: git
+  source:
+    uri: https://github.com/pivotal/kpack
+    branch: master
+
+
+jobs:
+- name: Produce Image
+  plan:
+  - get: kpack
+  - put: first_image
+    params:
+      git_path: kpack
+- name: Get New Image
+  plan:
+  - get: first_image
+    trigger: true
